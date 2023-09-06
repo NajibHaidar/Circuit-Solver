@@ -130,7 +130,7 @@ def print_info(R, I):
 # print()
 # get_R_I(DIRECTED_Set1_I_SUPERNODE.I)
 # get_R_I(DIRECTED_Set1_A_SUPERNODE.A)
-R, I = get_R_I(DIRECTED_Set1_I_SUPERNODE.I)
+R, I = get_R_I(DIRECTED_Set1_I_NOOR.N)
 # R, I = get_R_I(DIRECTED_H_3X3_Simple.H)
 print_info(R, I)
 # print(find_inverse_sum('v2', DIRECTED_Set1_A.A))
