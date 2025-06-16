@@ -1,5 +1,4 @@
 import networkx as nx
-import numpy as np
 
 # create an empty undirected graph
 H = nx.DiGraph()

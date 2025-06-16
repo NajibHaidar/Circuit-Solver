@@ -1,5 +1,11 @@
 import numpy as np
-from MyTestGraphs import *
+import sys
+import os
+
+# Add the parent directory to sys.path so Python can find 'tests'
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from tests.test_graphs import *
 
 
 def process_supernode_node(n, matrix_traversal_index, R, G):
@@ -134,3 +140,6 @@ R, I = get_R_I(DIRECTED_Set1_I_NOOR.N)
 # R, I = get_R_I(DIRECTED_H_3X3_Simple.H)
 print_info(R, I)
 # print(find_inverse_sum('v2', DIRECTED_Set1_A.A))
+import sys
+for p in sys.path:
+    print(p)
