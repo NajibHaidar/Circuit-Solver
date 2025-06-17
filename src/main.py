@@ -2,143 +2,108 @@ import numpy as np
 import sys
 import os
 
-# Add the parent directory to sys.path so Python can find 'tests'
+# Ensure parent directory is in path to import circuit definitions
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from tests.test_circuits import *
 
-def process_supernode_node(n, matrix_traversal_index, R, G):
-    edge_data = G.edges(n, data=True)
-
-    for e in edge_data:
-        if e[2]['type'] == 'resistor' and e[1] != 'GND':
-            connected_node_index = G.nodes.get(e[1])['index']
-            R[matrix_traversal_index][connected_node_index] += 1 / e[2]['resistance']
-
-
-def find_inverse_sum(n, G):
-    sums = 0.0
-    edge_data = G.edges(n, data=True)
-
-    for e in edge_data:
-        if e[2]['type'] == 'resistor':
-            sums += -1 / e[2]['resistance']
-    return sums
-
+# -------------------- Matrix Utilities --------------------
 
 def find_v(matrixR, matrixI):
     Rinv = np.linalg.inv(matrixR)
     V = np.matmul(Rinv, matrixI)
     return V
 
+def print_info(R, I):
+    print("R matrix:\n", R, "\n")
+    print("I vector:\n", I, "\n")
+    V = find_v(R, I)
+    for i, v in enumerate(V, 1):
+        print(f"V{i} = {v[0]}")
+    print("\n! Analysis Complete !\n")
+
+# -------------------- MNA Core Functions --------------------
+
+def process_supernode_node(n, matrix_traversal_index, R, G):
+    for _, neighbor, attrs in G.edges(n, data=True):
+        if attrs['type'] == 'resistor' and neighbor != 'GND':
+            idx = G.nodes[neighbor]['index']
+            R[matrix_traversal_index][idx] += 1 / attrs['resistance']
+
+def find_inverse_sum(n, G):
+    return sum(
+        -1 / attrs['resistance']
+        for _, _, attrs in G.edges(n, data=True)
+        if attrs['type'] == 'resistor'
+    )
 
 def get_R_I(G):
     node_data = list(G.nodes(data=True))
     N = len(G.nodes) - 1
-
     edge_data = list(G.edges(data=True))
-    num_of_edges = len(edge_data)
 
-    R = np.array(np.zeros((N, N)))
-    I = np.array(np.zeros((N, 1)))
+    R = np.zeros((N, N))
+    I = np.zeros((N, 1))
+    idx = 0
 
-    matrix_traversal_index = 0
+    for u, v, attrs in edge_data:
+        if attrs['type'] == 'Vsource':
+            i_u, i_v = G.nodes[u]['index'], G.nodes[v]['index']
+            I[idx][0] = attrs['voltage']
 
-    for e in edge_data:
-        if e[2]['type'] == 'Vsource':
-            n1 = e[0]
-            n2 = e[1]
-            n1_index = G.nodes.get(n1)['index']
-            n2_index = G.nodes.get(n2)['index']
-
-            I[matrix_traversal_index][0] = e[2]['voltage']
-
-            if n1 == 'GND':
-                R[matrix_traversal_index][n2_index] = 1
-                matrix_traversal_index += 1
-                G.nodes.get(n2)['skip'] = True
-
-            elif n2 == 'GND':
-                R[matrix_traversal_index][n1_index] = 1
-                matrix_traversal_index += 1
-                G.nodes.get(n1)['skip'] = True
-
+            if u == 'GND':
+                R[idx][i_v] = 1
+                G.nodes[v]['skip'] = True
+            elif v == 'GND':
+                R[idx][i_u] = 1
+                G.nodes[u]['skip'] = True
             else:
-                R[matrix_traversal_index][n2_index] = 1
-                R[matrix_traversal_index][n1_index] = -1
+                R[idx][i_v] = 1
+                R[idx][i_u] = -1
+                G.nodes[u]['supernode'] = [True, v]
+                G.nodes[v]['supernode'] = [True, u]
+            idx += 1
 
-                G.nodes.get(n1)['supernode'] = [True, n2]
-                G.nodes.get(n2)['supernode'] = [True, n1]
-
-                matrix_traversal_index += 1
-
-    for n in node_data:
-        curr_n_index = n[1]['index']
-        if n[0] != 'GND' and not n[1]['supernode'][0] and not n[1]['skip']:
-            R[matrix_traversal_index][curr_n_index] = find_inverse_sum(n[0], G)
-            for neighbor_edge in G.edges(n[0], data=True):
-                if neighbor_edge[2]['type'] == 'resistor':
-                    curr_neighbor_node = neighbor_edge[1]
-                    if curr_neighbor_node != 'GND':
-                        curr_neighbor_index = G.nodes.get(curr_neighbor_node)['index']
-
-                        R[matrix_traversal_index][curr_neighbor_index] = 1 / neighbor_edge[2]['resistance']
-                elif neighbor_edge[2]['type'] == 'Csource':
-                    if neighbor_edge[0] == neighbor_edge[2]['origin']:
-                        I[matrix_traversal_index] += neighbor_edge[2]['current']
-                    else:
-                        I[matrix_traversal_index] += -neighbor_edge[2]['current']
-
-            matrix_traversal_index += 1
-
-        elif n[0] != 'GND' and not n[1]['skip']:
-            other_supernode = n[1]['supernode'][1]
-            other_supernode_index = G.nodes.get(other_supernode)['index']
-            R[matrix_traversal_index][curr_n_index] = find_inverse_sum(n[0], G)
-            R[matrix_traversal_index][other_supernode_index] = find_inverse_sum(other_supernode, G)
-            process_supernode_node(n[0], matrix_traversal_index, R, G)
-            process_supernode_node(other_supernode, matrix_traversal_index, R, G)
-            G.nodes.get(other_supernode)['skip'] = True
-            matrix_traversal_index += 1
-
-    # print("R:")
-    # print(R)
-    # print("------------------")
-    # print("I:")
-    # print(I)
-    # print("------------------")
-    # print(find_v(R, I))
+    for name, data in node_data:
+        i = data['index']
+        if name == 'GND' or data['skip']:
+            continue
+        if not data['supernode'][0]:
+            R[idx][i] = find_inverse_sum(name, G)
+            for _, neighbor, attrs in G.edges(name, data=True):
+                if attrs['type'] == 'resistor' and neighbor != 'GND':
+                    j = G.nodes[neighbor]['index']
+                    R[idx][j] = 1 / attrs['resistance']
+                elif attrs['type'] == 'Csource':
+                    sign = 1 if name == attrs['origin'] else -1
+                    I[idx][0] += sign * attrs['current']
+        else:
+            j = G.nodes[data['supernode'][1]]['index']
+            R[idx][i] = find_inverse_sum(name, G)
+            R[idx][j] = find_inverse_sum(data['supernode'][1], G)
+            process_supernode_node(name, idx, R, G)
+            process_supernode_node(data['supernode'][1], idx, R, G)
+            G.nodes[data['supernode'][1]]['skip'] = True
+        idx += 1
 
     return R, I
 
+# -------------------- Example Execution --------------------
 
-def print_info(R, I):
-    print("R:")
-    print(R)
-    print("------------------")
-    print("I:")
-    print(I)
-    print("------------------")
-    V = find_v(R, I)
-    for i in range(len(V)):
-        print("V{} = {}".format(i + 1, V[i]))
-    print()
-    print("!Analysis Complete!\n")
+if __name__ == "__main__":
+    # Pick a test circuit to run
+    circuits = [
+        directed_h_3x3_simple(),
+        directed_set1_a(),
+        directed_set1_a_supernode(),
+        directed_set1_b_cs(),
+        directed_set1_c_vsandcs(),
+        directed_set1_e_multiple_vsandcs(),
+        directed_set1_f_multiple_vsandcs(),
+        directed_set1_i_noor(),
+        directed_set1_i_supernode(),
+    ]
 
-
-# get_R_I(DIRECTED_Set1_I_NOOR.N)
-# get_R_I(DIRECTED_Set1_E_MULTIPLE_VSandCS.E)
-# get_R_I(DIRECTED_Set1_F_MULTIPLE_VSandCS.F)
-# get_R_I(DIRECTED_Set1_C_VSandCS.C)
-# get_R_I(DIRECTED_Set1_B_CS.B)
-# print()
-# print()
-# get_R_I(DIRECTED_Set1_I_SUPERNODE.I)
-# get_R_I(DIRECTED_Set1_A_SUPERNODE.A)
-# R, I = get_R_I(DIRECTED_Set1_I_NOOR.N)
-# R, I = get_R_I(DIRECTED_H_3X3_Simple.H)
-# print_info(R, I)
-# print(find_inverse_sum('v2', DIRECTED_Set1_A.A))
-# import sys
-# for p in sys.path:
-#     print(p)
+    for circuit in circuits:
+        R, I = get_R_I(circuit)
+        print_info(R, I)

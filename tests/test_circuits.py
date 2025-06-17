@@ -1,207 +1,158 @@
 from src.graph_builder import GraphBuilder
+from src.components import Resistor, Csource, Vsource
 
 def directed_h_3x3_simple():
     G = GraphBuilder.create_graph()
-    GraphBuilder.add_nodes(G, [
-        ('v1', {'index': 0, 'skip': False, 'supernode': [False, -1]}),
-        ('v2', {'index': 1, 'skip': False, 'supernode': [False, -1]}),
-        ('v3', {'index': 2, 'skip': False, 'supernode': [False, -1]}),
-        ('GND', {'index': -2}),
-    ])
-    GraphBuilder.add_edges(G, [
-        ('GND', 'v1', {'type': 'Vsource', 'voltage': 6}),
-        ('v1', 'v2', {'type': 'resistor', 'resistance': 1}),
-        ('v2', 'v3', {'type': 'resistor', 'resistance': 2}),
-        ('v3', 'GND', {'type': 'resistor', 'resistance': 3}),
-    ])
+    GraphBuilder.create_standard_nodes(G, 3)  # v1 to v3 + GND
+
+    components = [
+        Vsource('GND', 'v1', 6),
+        Resistor('v1', 'v2', 1),
+        Resistor('v2', 'v3', 2),
+        Resistor('v3', 'GND', 3),
+    ]
+
+    GraphBuilder.add_components(G, components)
+
     return G
 
 def directed_set1_a():
     G = GraphBuilder.create_graph()
+    GraphBuilder.create_standard_nodes(G, 3)  # v1 to v3 + GND
 
-    GraphBuilder.add_nodes(G, [
-        ('v1', {'index': 0, 'skip': False, 'supernode': [False, -1]}),
-        ('v2', {'index': 1, 'skip': False, 'supernode': [False, -1]}),
-        ('v3', {'index': 2, 'skip': False, 'supernode': [False, -1]}),
-        ('GND', {'index': -2}),
-    ])
+    components = [
+        Vsource('GND', 'v1', 1),
+        Resistor('v1', 'v3', 4),
+        Resistor('v1', 'v2', 2),
+        Resistor('v2', 'v3', 3),
+        Resistor('v2', 'GND', 1),
+        Resistor('v3', 'GND', 2),
+    ]
 
-    GraphBuilder.add_edges(G, [
-        ('GND', 'v1', {'type': 'Vsource', 'voltage': 1}),
-        ('v1', 'v3', {'type': 'resistor', 'resistance': 4}),
-        ('v1', 'v2', {'type': 'resistor', 'resistance': 2}),
-        ('v2', 'v3', {'type': 'resistor', 'resistance': 3}),
-        ('v2', 'GND', {'type': 'resistor', 'resistance': 1}),
-        ('v3', 'GND', {'type': 'resistor', 'resistance': 2}),
-    ])
-
+    GraphBuilder.add_components(G, components)
     return G
 
 def directed_set1_a_supernode():
     G = GraphBuilder.create_graph()
+    GraphBuilder.create_standard_nodes(G, 3)  # v1 to v3 + GND
 
-    GraphBuilder.add_nodes(G, [
-        ('v1', {'index': 0, 'skip': False, 'supernode': [False, -1]}),
-        ('v2', {'index': 1, 'skip': False, 'supernode': [False, -1]}),
-        ('v3', {'index': 2, 'skip': False, 'supernode': [False, -1]}),
-        ('GND', {'index': -2}),
-    ])
+    components = [
+        Vsource('v3', 'v1', 1),
+        Resistor('v1', 'GND', 4),
+        Resistor('v1', 'v2', 2),
+        Resistor('v2', 'GND', 3),
+        Resistor('v2', 'v3', 1),
+        Resistor('v3', 'GND', 2),
+    ]
 
-    GraphBuilder.add_edges(G, [
-        ('v3', 'v1', {'type': 'Vsource', 'voltage': 1}),
-        ('v1', 'GND', {'type': 'resistor', 'resistance': 4}),
-        ('v1', 'v2', {'type': 'resistor', 'resistance': 2}),
-        ('v2', 'GND', {'type': 'resistor', 'resistance': 3}),
-        ('v2', 'v3', {'type': 'resistor', 'resistance': 1}),
-        ('v3', 'GND', {'type': 'resistor', 'resistance': 2}),
-    ])
-
+    GraphBuilder.add_components(G, components)
     return G
 
 def directed_set1_b_cs():
     G = GraphBuilder.create_graph()
+    GraphBuilder.create_standard_nodes(G, 3)  # v1 to v3 + GND
 
-    GraphBuilder.add_nodes(G, [
-        ('v1', {'index': 0, 'skip': False, 'supernode': [False, -1]}),
-        ('v2', {'index': 1, 'skip': False, 'supernode': [False, -1]}),
-        ('v3', {'index': 2, 'skip': False, 'supernode': [False, -1]}),
-        ('GND', {'index': -2}),
-    ])
+    components = [
+        Csource('v3', 'v2', 2, 'v3'),
+        Resistor('v1', 'GND', 3),
+        Resistor('v1', 'v2', 2),
+        Resistor('v1', 'v3', 4),
+        Resistor('v2', 'GND', 1),
+        Resistor('v3', 'GND', 2),
+    ]
 
-    GraphBuilder.add_edges(G, [
-        ('v3', 'v2', {'type': 'Csource', 'current': 2, 'origin': 'v3'}),
-        ('v1', 'GND', {'type': 'resistor', 'resistance': 3}),
-        ('v1', 'v2', {'type': 'resistor', 'resistance': 2}),
-        ('v1', 'v3', {'type': 'resistor', 'resistance': 4}),
-        ('v2', 'GND', {'type': 'resistor', 'resistance': 1}),
-        ('v3', 'GND', {'type': 'resistor', 'resistance': 2}),
-    ])
-
+    GraphBuilder.add_components(G, components)
     return G
 
 def directed_set1_c_vsandcs():
     G = GraphBuilder.create_graph()
+    GraphBuilder.create_standard_nodes(G, 5)  # v1 to v5 + GND
 
-    GraphBuilder.add_nodes(G, [
-        ('v1', {'index': 0, 'skip': False, 'supernode': [False, -1]}),
-        ('v2', {'index': 1, 'skip': False, 'supernode': [False, -1]}),
-        ('v3', {'index': 2, 'skip': False, 'supernode': [False, -1]}),
-        ('v4', {'index': 3, 'skip': False, 'supernode': [False, -1]}),
-        ('v5', {'index': 4, 'skip': False, 'supernode': [False, -1]}),
-        ('GND', {'index': -2}),
-    ])
+    components = [
+        Csource('v3', 'v4', 1, 'v3'),
+        Vsource('GND', 'v1', 2),
+        Resistor('v1', 'v2', 2),
+        Resistor('v2', 'v4', 3),
+        Resistor('v2', 'v3', 2),
+        Resistor('v3', 'v5', 1),
+        Resistor('v5', 'GND', 1),
+        Resistor('v4', 'GND', 2),
+    ]
 
-    GraphBuilder.add_edges(G, [
-        ('v3', 'v4', {'type': 'Csource', 'current': 1, 'origin': 'v3'}),
-        ('GND', 'v1', {'type': 'Vsource', 'voltage': 2}),
-        ('v1', 'v2', {'type': 'resistor', 'resistance': 2}),
-        ('v2', 'v4', {'type': 'resistor', 'resistance': 3}),
-        ('v2', 'v3', {'type': 'resistor', 'resistance': 2}),
-        ('v3', 'v5', {'type': 'resistor', 'resistance': 1}),
-        ('v5', 'GND', {'type': 'resistor', 'resistance': 1}),
-        ('v4', 'GND', {'type': 'resistor', 'resistance': 2}),
-    ])
-
+    GraphBuilder.add_components(G, components)
     return G
 
 def directed_set1_e_multiple_vsandcs():
     G = GraphBuilder.create_graph()
+    GraphBuilder.create_standard_nodes(G, 5)  # v1 to v5 + GND
 
-    GraphBuilder.add_nodes(G, [
-        ('v1', {'index': 0, 'skip': False, 'supernode': [False, -1]}),
-        ('v2', {'index': 1, 'skip': False, 'supernode': [False, -1]}),
-        ('v3', {'index': 2, 'skip': False, 'supernode': [False, -1]}),
-        ('v4', {'index': 3, 'skip': False, 'supernode': [False, -1]}),
-        ('v5', {'index': 4, 'skip': False, 'supernode': [False, -1]}),
-        ('GND', {'index': -2}),
-    ])
+    components = [
+        Csource('v2', 'v5', 1, 'v2'),
+        Csource('v4', 'GND', 2, 'v4'),
+        Vsource('GND', 'v1', 1),
+        Resistor('v1', 'v2', 1),
+        Resistor('v2', 'v3', 2),
+        Resistor('v3', 'v4', 2),
+        Resistor('v3', 'v5', 3),
+        Resistor('v5', 'GND', 2),
+    ]
 
-    GraphBuilder.add_edges(G, [
-        ('v2', 'v5', {'type': 'Csource', 'current': 1, 'origin': 'v2'}),
-        ('v4', 'GND', {'type': 'Csource', 'current': 2, 'origin': 'v4'}),
-        ('GND', 'v1', {'type': 'Vsource', 'voltage': 1}),
-        ('v1', 'v2', {'type': 'resistor', 'resistance': 1}),
-        ('v2', 'v3', {'type': 'resistor', 'resistance': 2}),
-        ('v3', 'v4', {'type': 'resistor', 'resistance': 2}),
-        ('v3', 'v5', {'type': 'resistor', 'resistance': 3}),
-        ('v5', 'GND', {'type': 'resistor', 'resistance': 2}),
-    ])
-
+    GraphBuilder.add_components(G, components)
     return G
 
 def directed_set1_f_multiple_vsandcs():
     G = GraphBuilder.create_graph()
+    GraphBuilder.create_standard_nodes(G, 5)  # v1 to v5 + GND
 
-    GraphBuilder.add_nodes(G, [
-        ('v1', {'index': 0, 'skip': False, 'supernode': [False, -1]}),
-        ('v2', {'index': 1, 'skip': False, 'supernode': [False, -1]}),
-        ('v3', {'index': 2, 'skip': False, 'supernode': [False, -1]}),
-        ('v4', {'index': 3, 'skip': False, 'supernode': [False, -1]}),
-        ('v5', {'index': 4, 'skip': False, 'supernode': [False, -1]}),
-        ('GND', {'index': -2}),
-    ])
+    components = [
+        Csource('v3', 'v4', 1, 'v3'),
+        Csource('v2', 'v4', 1, 'v2'),
+        Vsource('GND', 'v1', 3),
+        Vsource('GND', 'v5', 1),
+        Resistor('v1', 'v2', 2),
+        Resistor('v2', 'v3', 2),
+        Resistor('v3', 'v5', 1),
+        Resistor('v4', 'GND', 2),
+    ]
 
-    GraphBuilder.add_edges(G, [
-        ('v3', 'v4', {'type': 'Csource', 'current': 1, 'origin': 'v3'}),
-        ('v2', 'v4', {'type': 'Csource', 'current': 1, 'origin': 'v2'}),
-        ('GND', 'v1', {'type': 'Vsource', 'voltage': 3}),
-        ('GND', 'v5', {'type': 'Vsource', 'voltage': 1}),
-        ('v1', 'v2', {'type': 'resistor', 'resistance': 2}),
-        ('v2', 'v3', {'type': 'resistor', 'resistance': 2}),
-        ('v3', 'v5', {'type': 'resistor', 'resistance': 1}),
-        ('v4', 'GND', {'type': 'resistor', 'resistance': 2}),
-    ])
-
+    GraphBuilder.add_components(G, components)
     return G
 
 def directed_set1_i_noor():
     G = GraphBuilder.create_graph()
+    GraphBuilder.create_standard_nodes(G, 5)  # v1 to v5 + GND
 
-    GraphBuilder.add_nodes(G, [
-        ('v1', {'index': 0, 'skip': False, 'supernode': [False, -1]}),
-        ('v2', {'index': 1, 'skip': False, 'supernode': [False, -1]}),
-        ('v3', {'index': 2, 'skip': False, 'supernode': [False, -1]}),
-        ('v4', {'index': 3, 'skip': False, 'supernode': [False, -1]}),
-        ('v5', {'index': 4, 'skip': False, 'supernode': [False, -1]}),
-        ('GND', {'index': -2}),
-    ])
+    components = [
+        Vsource('GND', 'v2', 3),
+        Vsource('v4', 'v3', 1),
+        Resistor('v1', 'v4', 2),
+        Resistor('GND', 'v1', 1),
+        Resistor('v5', 'v1', 2),
+        Resistor('v5', 'GND', 3),
+        Resistor('v2', 'v5', 2),
+        Resistor('v3', 'v2', 1),
+        Resistor('GND', 'v4', 2),
+    ]
 
-    GraphBuilder.add_edges(G, [
-        ('GND', 'v2', {'type': 'Vsource', 'voltage': 3}),
-        ('v4', 'v3', {'type': 'Vsource', 'voltage': 1}),
-        ('v1', 'v4', {'type': 'resistor', 'resistance': 2}),
-        ('GND', 'v1', {'type': 'resistor', 'resistance': 1}),
-        ('v5', 'v1', {'type': 'resistor', 'resistance': 2}),
-        ('v5', 'GND', {'type': 'resistor', 'resistance': 3}),
-        ('v2', 'v5', {'type': 'resistor', 'resistance': 2}),
-        ('v3', 'v2', {'type': 'resistor', 'resistance': 1}),
-        ('GND', 'v4', {'type': 'resistor', 'resistance': 2}),
-    ])
-
+    GraphBuilder.add_components(G, components)
     return G
 
 def directed_set1_i_supernode():
     G = GraphBuilder.create_graph()
+    GraphBuilder.create_standard_nodes(G, 5) # v1 to v5 + GND
 
-    GraphBuilder.add_nodes(G, [
-        ('v1', {'index': 0, 'skip': False, 'supernode': [False, -1]}),
-        ('v2', {'index': 1, 'skip': False, 'supernode': [False, -1]}),
-        ('v3', {'index': 2, 'skip': False, 'supernode': [False, -1]}),
-        ('v4', {'index': 3, 'skip': False, 'supernode': [False, -1]}),
-        ('v5', {'index': 4, 'skip': False, 'supernode': [False, -1]}),
-        ('GND', {'index': -2}),
-    ])
+    components = [
+        Vsource('v4', 'v3', 3),
+        Vsource('GND', 'v5', 1),
+        Resistor('v1', 'GND', 2),
+        Resistor('GND', 'v4', 2),
+        Resistor('v4', 'v1', 1),
+        Resistor('v1', 'v2', 2),
+        Resistor('v2', 'v3', 2),
+        Resistor('v3', 'v5', 1),
+        Resistor('v2', 'v4', 3),
+    ]
 
-    GraphBuilder.add_edges(G, [
-        ('v4', 'v3', {'type': 'Vsource', 'voltage': 3}),
-        ('GND', 'v5', {'type': 'Vsource', 'voltage': 1}),
-        ('v1', 'GND', {'type': 'resistor', 'resistance': 2}),
-        ('GND', 'v4', {'type': 'resistor', 'resistance': 2}),
-        ('v4', 'v1', {'type': 'resistor', 'resistance': 1}),
-        ('v1', 'v2', {'type': 'resistor', 'resistance': 2}),
-        ('v2', 'v3', {'type': 'resistor', 'resistance': 2}),
-        ('v3', 'v5', {'type': 'resistor', 'resistance': 1}),
-        ('v2', 'v4', {'type': 'resistor', 'resistance': 3}),
-    ])
+    GraphBuilder.add_components(G, components)
 
     return G

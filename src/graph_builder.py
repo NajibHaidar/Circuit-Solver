@@ -4,6 +4,15 @@ class GraphBuilder:
     @staticmethod
     def create_graph():
         return nx.DiGraph()
+    
+    @staticmethod
+    def create_standard_nodes(graph, num_nodes):
+        nodes = [
+            (f'v{i+1}', {'index': i, 'skip': False, 'supernode': [False, -1]})
+            for i in range(num_nodes)
+        ]
+        nodes.append(('GND', {'index': -2}))
+        GraphBuilder.add_nodes(graph, nodes)
 
     @staticmethod
     def add_nodes(graph, nodes):
@@ -11,10 +20,6 @@ class GraphBuilder:
             graph.add_node(name, **attrs)
 
     @staticmethod
-    def add_edges(graph, edges):
-        for src, dst, attrs in edges:
-            graph.add_edge(src, dst, **attrs)
-
-            # Mirror resistor and Csource edges
-            if attrs.get("type") in ("resistor", "Csource"):
-                graph.add_edge(dst, src, **attrs)
+    def add_components(graph, components):
+        for component in components:
+            component.add_to_graph(graph)
