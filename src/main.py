@@ -92,18 +92,19 @@ def get_R_I(G):
 
 if __name__ == "__main__":
     # Pick a test circuit to run
-    circuits = [
-        directed_h_3x3_simple(),
-        directed_set1_a(),
-        directed_set1_a_supernode(),
-        directed_set1_b_cs(),
-        directed_set1_c_vsandcs(),
-        directed_set1_e_multiple_vsandcs(),
-        directed_set1_f_multiple_vsandcs(),
-        directed_set1_i_noor(),
-        directed_set1_i_supernode(),
+    circuit_funcs = [
+        directed_h_3x3_simple,
+        directed_set1_a,
+        directed_set1_a_supernode,
+        directed_set1_b_cs,
+        directed_set1_c_vsandcs,
+        directed_set1_e_multiple_vsandcs,
+        directed_set1_f_multiple_vsandcs,
+        directed_set1_i_noor,
+        directed_set1_i_supernode,
     ]
 
-    for circuit in circuits:
-        R, I = get_R_I(circuit)
+    for circuit_func in circuit_funcs:
+        print(f"Processing circuit: {circuit_func.__name__}")
+        R, I = get_R_I(circuit_func())
         print_info(R, I)
